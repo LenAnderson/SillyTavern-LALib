@@ -1,4 +1,4 @@
-import { chat_metadata } from '../../../../script.js';
+import { chat_metadata, sendSystemMessage } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
 import { executeSlashCommands, registerSlashCommand } from '../../../slash-commands.js';
 import { isTrueBoolean } from '../../../utils.js';
@@ -144,9 +144,72 @@ function getListVar(local, global, literal) {
 }
 
 
+class Command {
+    /**@type {String} */ command;
+    /**@type {String} */ args;
+    /**@type {String} */ helpText;
+    constructor(command, helpText) {
+        this.command = command;
+        this.args = helpText.split(' – ')[0];
+        this.helpText = helpText.split(' – ')[1];
+    }
+}
+/**@type {Command[]} */
+const commandList = [];
+
+/**
+ * registerSlashCommand
+ * @param {String} command
+ * @param {Function} callback
+ * @param {String[]} aliasList
+ * @param {String} helpText
+ * @param {Boolean} a
+ * @param {Boolean} b
+ */
+const rsc = (command, callback, aliasList, helpText, a=true, b=true)=>{
+    registerSlashCommand(command, callback, aliasList, helpText, a, b);
+    commandList.push(new Command(command, helpText));
+};
 
 
-registerSlashCommand(
+
+
+rsc(
+    'lalib?',
+    ()=>{
+        const cmds = commandList.map(it=>{
+            const li = document.createElement('li'); {
+                const code = document.createElement('code'); {
+                    const cmd = it.command;
+                    code.append(cmd);
+                    code.append(' ');
+                    const q = document.createElement('q'); {
+                        const args = document.createRange().createContextualFragment(it.args).textContent;
+                        q.append(args);
+                        code.append(q);
+                    }
+                    li.append(code);
+                }
+                const p = document.createElement('p'); {
+                    p.innerHTML = it.helpText;
+                    li.append(p);
+                }
+            }
+            return li.outerHTML;
+        });
+        const message = `
+            <ul>
+                ${cmds.join('\n')}
+            </ul>
+        `;
+        sendSystemMessage('generic', message);
+    },
+    [],
+    ' – Lists LALib commands',
+)
+
+
+rsc(
     'test',
     (args)=>{
         const { a, b, rule } = parseBooleanOperands(args);
@@ -158,7 +221,7 @@ registerSlashCommand(
     true,
 );
 
-registerSlashCommand(
+rsc(
     'and',
     (args)=>{
         let left = args.left;
@@ -173,7 +236,7 @@ registerSlashCommand(
     true,
 );
 
-registerSlashCommand(
+rsc(
     'or',
     (args)=>{
         let left = args.left;
@@ -188,7 +251,7 @@ registerSlashCommand(
     true,
 );
 
-registerSlashCommand(
+rsc(
     'not',
     (args, value)=>{
         return value != true;
@@ -200,7 +263,7 @@ registerSlashCommand(
 );
 
 
-registerSlashCommand(
+rsc(
     'foreach',
     async(args, value)=>{
         let list = getListVar(args.var, args.globalvar, args.list);
@@ -230,7 +293,7 @@ registerSlashCommand(
 );
 
 
-registerSlashCommand(
+rsc(
     'join',
     (args, value)=>{
         let list = getListVar(args.var, args.globalvar, value);
@@ -244,13 +307,57 @@ registerSlashCommand(
     true,
 );
 
-registerSlashCommand(
+rsc(
     'split',
     (args, value)=>{
         return JSON.stringify(value.split(args.find ?? ',').map(it=>isTrueBoolean(args.trim ?? true) ? it.trim() : it));
     },
     [],
     '<span class="monospace">[optional find=","] [optional trim=true|false] (value)</span> – Splits value into list at every occurrence of find.',
+    true,
+    true,
+);
+
+
+rsc(
+    'copy',
+    (args, value)=>{
+        const ta = document.createElement('textarea'); {
+            ta.value = value;
+            ta.style.position = 'fixed';
+            ta.style.inset = '0';
+            document.body.append(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Unable to copy to clipboard', err);
+            }
+            ta.remove();
+        }
+    },
+    [],
+    '<span class="monospace">(value)</span> – Copies value into clipboard.',
+    true,
+    true,
+);
+
+rsc(
+    'download',
+    (args, value)=>{
+        const blob = new Blob([value], { type:'text' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); {
+            a.href = url;
+            const name = args.name ?? `SillyTavern-${new Date().toISOString()}`;
+            const ext = args.ext ?? 'txt';
+            a.download = `${name}.${ext}`;
+            a.click();
+        }
+    },
+    [],
+    '<span class="monospace">[optional name=filename] [optional ext=extension (value)</span> – Downloads value as a text file.',
     true,
     true,
 );

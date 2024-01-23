@@ -3,6 +3,9 @@
 Library of STScript commands.
 
 ```
+/lalib?
+ – Lists this librarie's slash commands.
+
 /test left=val rule=rule right=val
  – Returns true or false, depending on whether left and right adhere to rule. Available rules: gt => a > b, gte => a >= b, lt => a < b, lte => a <= b, eq => a == b, neq => a != b, not => !a, in (strings) => a includes b, nin (strings) => a not includes b
 
@@ -23,4 +26,10 @@ Library of STScript commands.
 
 /split [optional find=","] [optional trim=true|false] (value)
  – Splits value into list at every occurrence of find.
+
+/copy (value)
+ – Copies value to clipboard.
+
+/download [optional name=filename] [optional ext=extension] (value)
+ – Downloads value as text file.
 ```
