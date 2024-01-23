@@ -194,7 +194,7 @@ registerSlashCommand(
         return value != true;
     },
     [],
-    '<span class="monospace">(value)</span> – Returns true if value is truthy, otherwise false.',
+    '<span class="monospace">(value)</span> – Returns true if value is false, otherwise true.',
     true,
     true,
 );
