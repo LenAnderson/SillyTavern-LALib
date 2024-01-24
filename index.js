@@ -356,6 +356,20 @@ rsc(
     '<span class="monospace">start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves a slice of a list or string.',
 );
 
+rsc(
+    'getat',
+    (args, value)=>{
+        const list = getListVar(args.var, args.globalvar, value);
+        const result = list[args.index];
+        if (typeof result == 'object') {
+            return JSON.stringify(result);
+        }
+        return result;
+    },
+    [],
+    '<span class="monospace">index=int|fieldname [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves an item from a list or a property from a dictionary.',
+);
+
 
 rsc(
     'copy',

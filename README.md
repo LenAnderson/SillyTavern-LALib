@@ -30,6 +30,9 @@ Library of STScript commands.
 /slice start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)
  – Retrieves a slice of a list or string.
 
+/getat index=int|fieldname [optional var=varname] [optional globalvar=globalvarname] (optional value)
+ – Retrieves an item from a list or a property from a dictionary.
+
 /copy (value)
  – Copies value to clipboard.
 
