@@ -22,10 +22,13 @@ Library of STScript commands.
  – Executes command for each item of a list or dictionary.
 
 /join [optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)
- – Joins the items of a list with glue into a single string.
+ – Joins the items of a list with glue into a single string. Use glue={{space}} to join with a space.
 
 /split [optional find=","] [optional trim=true|false] (value)
- – Splits value into list at every occurrence of find.
+ – Splits value into list at every occurrence of find. Supports regex find=/\s/
+
+/slice start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)
+ – Retrieves a slice of a list or string.
 
 /copy (value)
  – Copies value to clipboard.

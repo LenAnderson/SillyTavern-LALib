@@ -143,6 +143,20 @@ function getListVar(local, global, literal) {
     return list;
 }
 
+function getVar(local, global, literal) {
+    let value;
+    if (local) {
+        value = chat_metadata?.variables?.[local];
+    }
+    if (value === undefined && global) {
+        value = extension_settings.variables?.global?.[global];
+    }
+    if (value === undefined && literal) {
+        value = literal;
+    }
+    return value;
+}
+
 
 class Command {
     /**@type {String} */ command;
@@ -166,7 +180,7 @@ const commandList = [];
  * @param {Boolean} a
  * @param {Boolean} b
  */
-const rsc = (command, callback, aliasList, helpText, a=true, b=true)=>{
+const rsc = (command, callback, aliasList, helpText, a = true, b = true)=>{
     registerSlashCommand(command, callback, aliasList, helpText, a, b);
     commandList.push(new Command(command, helpText));
 };
@@ -181,6 +195,7 @@ rsc(
             const li = document.createElement('li'); {
                 const code = document.createElement('code'); {
                     const cmd = it.command;
+                    code.append('/');
                     code.append(cmd);
                     code.append(' ');
                     const q = document.createElement('q'); {
@@ -198,7 +213,7 @@ rsc(
             return li.outerHTML;
         });
         const message = `
-            <ul>
+            <ul style='text-align:left;'>
                 ${cmds.join('\n')}
             </ul>
         `;
@@ -206,7 +221,7 @@ rsc(
     },
     [],
     ' – Lists LALib commands',
-)
+);
 
 
 rsc(
@@ -298,11 +313,14 @@ rsc(
     (args, value)=>{
         let list = getListVar(args.var, args.globalvar, value);
         if (Array.isArray(list)) {
-            return list.join(args.glue ?? ', ');
+            const glue = (args.glue ?? ', ')
+                .replace(/{{space}}/g, ' ')
+            ;
+            return list.join(glue);
         }
     },
     [],
-    '<span class="monospace">[optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)</span> – Joins the items of a list with glue into a single string.',
+    '<span class="monospace">[optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)</span> – Joins the items of a list with glue into a single string. Use <code>glue={{space}}</code> to join with a space.',
     true,
     true,
 );
@@ -310,12 +328,32 @@ rsc(
 rsc(
     'split',
     (args, value)=>{
-        return JSON.stringify(value.split(args.find ?? ',').map(it=>isTrueBoolean(args.trim ?? true) ? it.trim() : it));
+        value = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
+        let find = args.find ?? ',';
+        if (find.match(/^\/.+\/[a-z]*$/)) {
+            find = new RegExp(find.replace(/^\/(.+)\/([a-z]*)$/, '$1'), find.replace(/^\/(.+)\/([a-z]*)$/, '$2'));
+        }
+        return JSON.stringify(value.split(find).map(it=>isTrueBoolean(args.trim ?? 'true') ? it.trim() : it));
     },
     [],
-    '<span class="monospace">[optional find=","] [optional trim=true|false] (value)</span> – Splits value into list at every occurrence of find.',
+    '<span class="monospace">[optional find=","] [optional trim=true|false] [optional var=varname] [optional globalvar=globalvarname] (value)</span> – Splits value into list at every occurrence of find. Supports regex <code>find=/\\s/</code>',
     true,
     true,
+);
+
+rsc(
+    'slice',
+    (args, value)=>{
+        const list = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
+        let end = args.end ?? (args.length ? Number(args.start) + Number(args.length) : undefined);
+        const result = list.slice(args.start, end);
+        if (typeof result == 'object') {
+            return JSON.stringify(result);
+        }
+        return result;
+    },
+    [],
+    '<span class="monospace">start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves a slice of a list or string.',
 );
 
 
