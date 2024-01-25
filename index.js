@@ -360,7 +360,7 @@ rsc(
     'getat',
     (args, value)=>{
         const list = getListVar(args.var, args.globalvar, value);
-        const result = list[args.index];
+        const result = Array.isArray(list) ? list.slice(args.index)[0] : list[args.index];
         if (typeof result == 'object') {
             return JSON.stringify(result);
         }
