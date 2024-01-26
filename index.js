@@ -165,7 +165,7 @@ class Command {
     constructor(command, helpText) {
         this.command = command;
         this.args = helpText.split(' – ')[0];
-        this.helpText = helpText.split(' – ')[1];
+        this.helpText = helpText.split(/(?=– )/)[1];
     }
 }
 /**@type {Command[]} */
@@ -188,8 +188,7 @@ const rsc = (command, callback, aliasList, helpText, a = true, b = true)=>{
 
 
 
-rsc(
-    'lalib?',
+rsc('lalib?',
     ()=>{
         const cmds = commandList.map(it=>{
             const li = document.createElement('li'); {
@@ -224,11 +223,10 @@ rsc(
 );
 
 
-rsc(
-    'test',
+rsc('test',
     (args)=>{
         const { a, b, rule } = parseBooleanOperands(args);
-        return evalBoolean(rule, a, b);
+        return JSON.stringify(evalBoolean(rule, a, b));
     },
     [],
     '<span class="monospace">left=val rule=rule right=val</span> – Returns true or false, depending on whether left and right adhere to rule. Available rules: gt => a > b, gte => a >= b, lt => a < b, lte => a <= b, eq => a == b, neq => a != b, not => !a, in (strings) => a includes b, nin (strings) => a not includes b',
@@ -236,8 +234,7 @@ rsc(
     true,
 );
 
-rsc(
-    'and',
+rsc('and',
     (args)=>{
         let left = args.left;
         try { left = JSON.parse(args.left); } catch { /* empty */ }
@@ -251,8 +248,7 @@ rsc(
     true,
 );
 
-rsc(
-    'or',
+rsc('or',
     (args)=>{
         let left = args.left;
         try { left = JSON.parse(args.left); } catch { /* empty */ }
@@ -266,8 +262,7 @@ rsc(
     true,
 );
 
-rsc(
-    'not',
+rsc('not',
     (args, value)=>{
         return value != true;
     },
@@ -278,20 +273,22 @@ rsc(
 );
 
 
-rsc(
-    'foreach',
+rsc('foreach',
     async(args, value)=>{
         let list = getListVar(args.var, args.globalvar, args.list);
         let result;
-        if (!Array.isArray(list) && typeof list == 'object') {
-            list = Object.keys(list).map(key=>list[key]);
+        const isList = Array.isArray(list);
+        if (isList) {
+            list = list.map((it,idx)=>[idx,it]);
+        } else if (typeof list == 'object') {
+            list = Object.entries(list);
         }
         if (Array.isArray(list)) {
-            for (let item of list) {
+            for (let [index,item] of list) {
                 if (typeof item == 'object') {
                     item = JSON.stringify(item);
                 }
-                result = await executeSlashCommands(value.replace(/{{item}}/ig, item));
+                result = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
             }
             return result;
         }
@@ -302,14 +299,112 @@ rsc(
         return result;
     },
     [],
-    '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}})</span> – Executes command for each item of a list or dictionary.',
+    '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary.',
     true,
     true,
 );
 
+rsc('map',
+    async(args, value)=>{
+        let list = getListVar(args.var, args.globalvar, args.list);
+        let result;
+        const isList = Array.isArray(list);
+        if (isList) {
+            list = list.map((it,idx)=>[idx,it]);
+        } else if (typeof list == 'object') {
+            list = Object.entries(list);
+        }
+        if (Array.isArray(list)) {
+            for (let [index,item] of list) {
+                if (typeof item == 'object') {
+                    item = JSON.stringify(item);
+                }
+                list[index] = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+            }
+            return list;
+        }
 
-rsc(
-    'join',
+        if (typeof result == 'object') {
+            result = JSON.stringify(result);
+        }
+        return list;
+    },
+    [],
+    '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary and returns the list or dictionary of the command results.',
+);
+
+rsc('filter',
+    async(args, value)=>{
+        let list = getListVar(args.var, args.globalvar, args.list);
+        let result;
+        const isList = Array.isArray(list);
+        if (isList) {
+            list = list.map((it,idx)=>[idx,it]);
+            result = [];
+        } else if (typeof list == 'object') {
+            list = Object.entries(list);
+            result = {};
+        }
+        if (Array.isArray(list)) {
+            for (let [index,item] of list) {
+                if (typeof item == 'object') {
+                    item = JSON.stringify(item);
+                }
+                if (isTrueBoolean((await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe)) {
+                    if (isList) {
+                        result.push(item);
+                    } else {
+                        result[index] = item;
+                    }
+                }
+            }
+        } else {
+            result = list;
+        }
+
+        if (typeof result == 'object') {
+            result = JSON.stringify(result);
+        }
+        return result;
+    },
+    [],
+    '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary and returns the list or dictionary of only those items where the command returned true.',
+);
+
+rsc('find',
+    async(args, value)=>{
+        let list = getListVar(args.var, args.globalvar, args.list);
+        let result;
+        const isList = Array.isArray(list);
+        if (isList) {
+            list = list.map((it,idx)=>[idx,it]);
+            result = [];
+        } else if (typeof list == 'object') {
+            list = Object.entries(list);
+            result = {};
+        }
+        if (Array.isArray(list)) {
+            for (let [index,item] of list) {
+                if (typeof item == 'object') {
+                    item = JSON.stringify(item);
+                }
+                if (isTrueBoolean((await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe)) {
+                    if (typeof result == 'object') {
+                        return JSON.stringify(item);
+                    }
+                    return item;
+                }
+            }
+            return undefined;
+        }
+        return undefined;
+    },
+    [],
+    '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary and returns the first item where the command returned true.',
+);
+
+
+rsc('join',
     (args, value)=>{
         let list = getListVar(args.var, args.globalvar, value);
         if (Array.isArray(list)) {
@@ -325,8 +420,7 @@ rsc(
     true,
 );
 
-rsc(
-    'split',
+rsc('split',
     (args, value)=>{
         value = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
         let find = args.find ?? ',';
@@ -341,8 +435,8 @@ rsc(
     true,
 );
 
-rsc(
-    'slice',
+
+rsc('slice',
     (args, value)=>{
         const list = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
         let end = args.end ?? (args.length ? Number(args.start) + Number(args.length) : undefined);
@@ -356,8 +450,8 @@ rsc(
     '<span class="monospace">start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves a slice of a list or string.',
 );
 
-rsc(
-    'getat',
+
+rsc('getat',
     (args, value)=>{
         const list = getListVar(args.var, args.globalvar, value);
         const result = Array.isArray(list) ? list.slice(args.index)[0] : list[args.index];
@@ -370,9 +464,46 @@ rsc(
     '<span class="monospace">index=int|fieldname [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves an item from a list or a property from a dictionary.',
 );
 
+rsc('setat',
+    async(args, value)=>{
+        try { value = JSON.parse(value); } catch { /* empty */ }
+        let index = getListVar(null, null, args.index) ?? [args.index];
+        const list = getListVar(args.var, args.globalvar, args.value) ?? (Number.isNaN(Number(index[0])) ? {} : []);
+        if (!Array.isArray(index)) {
+            index = [index];
+        }
+        let current = list;
+        while (index.length > 0) {
+            const ci = index.shift();
+            if (index.length > 0 && current[ci] === undefined) {
+                if (Number.isNaN(Number(index[0]))) {
+                    current[ci] = {};
+                } else {
+                    current[ci] = [];
+                }
+            }
+            if (index.length == 0) {
+                current[ci] = value;
+            }
+            current = current[ci];
+        }
+        if (list !== undefined) {
+            let result = (typeof list == 'object') ? JSON.stringify(list) : list;
+            if (args.var) {
+                await executeSlashCommands(`/setvar key="${args.var}" ${result.replace(/\|/g, '\\|')}`);
+            }
+            if (args.globalvar) {
+                await executeSlashCommands(`/setglobalvar key="${args.globalvar}" ${result.replace(/\|/g, '\\|')}`);
+            }
+            return result;
+        }
+    },
+    [],
+    '<span class="monospace">index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] [optional value=list|dictionary] (value)</span> – Sets an item in a list or a property in a dictionary. Example: <code>/setat value=[1,2,3] index=1 X</code> returns <code>[1,"X",3]</code>, <code>/setat var=myVariable index=[1,2,"somePropery"] foobar</code> sets the value of <code>myVariable[1][2].someProperty</code> to "foobar" (the variable will be updated and the resulting value of myVariable will be returned). Can be used to create structures that do not already exist.',
+);
 
-rsc(
-    'copy',
+
+rsc('copy',
     (args, value)=>{
         const ta = document.createElement('textarea'); {
             ta.value = value;
@@ -395,8 +526,7 @@ rsc(
     true,
 );
 
-rsc(
-    'download',
+rsc('download',
     (args, value)=>{
         const blob = new Blob([value], { type:'text' });
         const url = URL.createObjectURL(blob);
@@ -409,7 +539,77 @@ rsc(
         }
     },
     [],
-    '<span class="monospace">[optional name=filename] [optional ext=extension (value)</span> – Downloads value as a text file.',
+    '<span class="monospace">[optional name=filename] [optional ext=extension] (value)</span> – Downloads value as a text file.',
     true,
     true,
+);
+
+
+rsc('fetch',
+    async(args, value)=>{
+        if (!window.stfetch) {
+            toastr.error('Userscript missing: SillyTavern - Fetch');
+            throw new Error('Userscript missing: SillyTavern - Fetch');
+        }
+        try {
+            const response = await window.stfetch({ url:value });
+            return response.responseText;
+        }
+        catch (ex) {
+            console.warn('[LALIB]', '[FETCH]', ex);
+        }
+    },
+    [],
+    '<span class="monospace">(url)</span> – UNDOCUMENTED',
+);
+
+rsc('$',
+    (args, value)=>{
+        const dom = document.createRange().createContextualFragment(value);
+        let el;
+        if (args.query) {
+            el = dom.querySelector(args.query);
+        } else if (dom.children.length == 1) {
+            el = dom.children[0];
+        } else {
+            el = document.createElement('div');
+            el.append(...dom.children);
+        }
+        if (args.call) {
+            el[args.call]();
+            return [...dom.children].map(it=>it.outerHTML).join('\n');
+        } else {
+            const result = el?.[args.take ?? 'outerHTML'];
+            if (typeof result == 'object') {
+                return JSON.stringify(result);
+            }
+            return result;
+        }
+    },
+    [],
+    '<span class="monospace">[optional query=cssSelector] [optional take=property] [optional call=property] (html)</span> – UNDOCUMENTED',
+);
+
+rsc('$$',
+    (args, value)=>{
+        const dom = document.createRange().createContextualFragment(value);
+        let els;
+        if (args.query) {
+            els = Array.from(dom.querySelectorAll(args.query));
+        } else {
+            els = Array.from(dom.children);
+        }
+        if (args.call) {
+            els.forEach(el=>el[args.call]());
+            return [...dom.children].map(it=>it.outerHTML).join('\n');
+        } else {
+            const result = els.map(el=>el?.[args.take ?? 'outerHTML']);
+            if (typeof result == 'object') {
+                return JSON.stringify(result);
+            }
+            return result;
+        }
+    },
+    [],
+    '<span class="monospace">[optional query=cssSelector] [optional take=property] [optional call=property] (html)</span> – UNDOCUMENTED',
 );
