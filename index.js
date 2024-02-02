@@ -503,6 +503,47 @@ rsc('setat',
 );
 
 
+rsc('try',
+    async(args, value)=>{
+        try {
+            const result = await executeSlashCommands(value);
+            return JSON.stringify({
+                isException: false,
+                result: result.pipe,
+            });
+        } catch (ex) {
+            return JSON.stringify({
+                isException: true,
+                exception: ex?.message ?? ex,
+            });
+        }
+    },
+    [],
+    '<span class="monospace">(command)</span> – try catch.',
+);
+
+rsc('catch',
+    async(args, value)=>{
+        if (args.pipe) {
+            let data;
+            try {
+                data = JSON.parse(args.pipe);
+            } catch (ex) {
+                console.warn('[LALIB]', '[CATCH]', 'failed to parse args.pipe', args.pipe, ex);
+            }
+            if (data.isException) {
+                const result = await executeSlashCommands(value.replace(/{{(exception|error)}}/ig, data.exception));
+                return result.pipe;
+            } else {
+                return data.result;
+            }
+        }
+    },
+    [],
+    '<span class="monospace">[pipe={{pipe}}] (command)</span> – try catch. You must always set <code>pipe={{pipe}}</code> and /catch must always be called right after /try. Use <code>{{exception}}</code> or <code>{{error}}</code> to get the exception\'s message.',
+);
+
+
 rsc('copy',
     (args, value)=>{
         const ta = document.createElement('textarea'); {

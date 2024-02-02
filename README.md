@@ -45,6 +45,12 @@ Library of STScript commands.
 /setat index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] [optional value=list|dictionary] (value)
 – Sets an item in a list or a property in a dictionary. Example: /setat value=[1,2,3] index=1 X returns [1,"X",3], /setat var=myVariable index=[1,2,"somePropery"] foobar sets the value of myVariable[1][2].someProperty to "foobar" (the variable will be updated and the resulting value of myVariable will be returned). Can be used to create structures that do not already exist.
 
+/try (command)
+– try catch.
+
+/catch [pipe={{pipe}}] (command)
+– try catch. You must always set pipe={{pipe}} and /catch must always be called right after /try. Use {{exception}} or {{error}} to get the exception's message.
+
 /copy (value)
 – Copies value into clipboard.
 
