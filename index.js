@@ -589,7 +589,12 @@ rsc('download',
 rsc('dom',
     (args, query)=>{
         /**@type {HTMLElement} */
-        const target = document.querySelector(query);
+        let target;
+        try {
+            target = document.querySelector(query);
+        } catch (ex) {
+            toastr.error(ex?.message ?? ex);
+        }
         if (!target) {
             toastr.warning(`No element found for query: ${query}`);
             return;
