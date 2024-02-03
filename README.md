@@ -57,8 +57,8 @@ Library of STScript commands.
 /download [optional name=filename] [optional ext=extension] (value)
 – Downloads value as a text file.
 
-/dom [action=click|value] [optional value=newValue] (CSS selector)
-– Click on an element or change its value. To select the targeted element, use CSS selectors. Example: /dom action=click #expandMessageActions or /dom action=value value=0 #avatar_style
+/dom [action=click|value|property] [optional value=newValue] [optional property=propertyName] [optional attribute=attributeName] (CSS selector)
+– Click on an element, change its value, retrieve a property, or retrieve an attribute. To select the targeted element, use CSS selectors. Example: /dom action=click #expandMessageActions or /dom action=value value=0 #avatar_style
 
 /fetch (url)
 – UNDOCUMENTED

@@ -608,10 +608,20 @@ rsc('dom',
                 target.dispatchEvent(new Event('change', { bubbles:true }));
                 return;
             }
+            case 'property': {
+                if (target[args.property] === undefined) {
+                    toastr.warning(`Property does not exist: ${target.tagName}`);
+                    return;
+                }
+                return target[args.property];
+            }
+            case 'attribute': {
+                return target.getAttribute(args.attribute);
+            }
         }
     },
     [],
-    '<span class="monospace">[action=click|value] [optional value=newValue] (CSS selector)</span> – Click on an element or change its value. To select the targeted element, use CSS selectors. Example: <code>/dom action=click #expandMessageActions</code> or <code>/dom action=value value=0 #avatar_style</code>',
+    '<span class="monospace">[action=click|value|property] [optional value=newValue] [optional property=propertyName] [optional attribute=attributeName] (CSS selector)</span> – Click on an element, change its value, retrieve a property, or retrieve an attribute. To select the targeted element, use CSS selectors. Example: <code>/dom action=click #expandMessageActions</code> or <code>/dom action=value value=0 #avatar_style</code>',
 );
 
 
