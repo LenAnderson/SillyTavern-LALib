@@ -586,6 +586,35 @@ rsc('download',
 );
 
 
+rsc('dom',
+    (args, query)=>{
+        /**@type {HTMLElement} */
+        const target = document.querySelector(query);
+        if (!target) {
+            toastr.warning(`No element found for query: ${query}`);
+            return;
+        }
+        switch (args.action) {
+            case 'click': {
+                target.click();
+                break;
+            }
+            case 'value': {
+                if (target.value === undefined) {
+                    toastr.warning(`Cannot set value on ${target.tagName}`);
+                    return;
+                }
+                target.value = args.value;
+                target.dispatchEvent(new Event('change', { bubbles:true }));
+                return;
+            }
+        }
+    },
+    [],
+    '<span class="monospace">[action=click|value] [optional value=newValue] (CSS selector)</span> – Click on an element or change its value. To select the targeted element, use CSS selectors. Example: <code>/dom action=click #expandMessageActions</code> or <code>/dom action=value value=0 #avatar_style</code>',
+);
+
+
 rsc('fetch',
     async(args, value)=>{
         if (!window.stfetch) {
