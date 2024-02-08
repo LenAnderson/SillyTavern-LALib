@@ -1,5 +1,6 @@
-import { chat_metadata, sendSystemMessage } from '../../../../script.js';
+import { characters, chat_metadata, sendSystemMessage } from '../../../../script.js';
 import { extension_settings } from '../../../extensions.js';
+import { findGroupMemberId, groups, selected_group } from '../../../group-chats.js';
 import { executeSlashCommands, registerSlashCommand } from '../../../slash-commands.js';
 import { isTrueBoolean } from '../../../utils.js';
 
@@ -627,6 +628,36 @@ rsc('dom',
     },
     [],
     '<span class="monospace">[action=click|value|property] [optional value=newValue] [optional property=propertyName] [optional attribute=attributeName] (CSS selector)</span> – Click on an element, change its value, retrieve a property, or retrieve an attribute. To select the targeted element, use CSS selectors. Example: <code>/dom action=click #expandMessageActions</code> or <code>/dom action=value value=0 #avatar_style</code>',
+);
+
+
+rsc('memberpos',
+    async(args, value)=>{
+        if (!selected_group) {
+            toastr.warning('Cannot run /memberpos command outside of a group chat.');
+            return '';
+        }
+        const group = groups.find(it=>it.id == selected_group);
+        const name = value.replace(/^(.+?)(\s+(\d+))?$/, '$1');
+        const char = characters[findGroupMemberId(name)];
+        let index = value.replace(/^(.+?)(\s+(\d+))?$/, '$2');
+        let currentIndex = group.members.findIndex(it=>it == char.avatar);
+        if (index === null) {
+            return currentIndex;
+        }
+        index = Math.min(group.members.length - 1, parseInt(index));
+        while (currentIndex < index) {
+            await executeSlashCommands(`/memberdown ${name}`);
+            currentIndex++;
+        }
+        while (currentIndex > index) {
+            await executeSlashCommands(`/memberup ${name}`);
+            currentIndex--;
+        }
+        return currentIndex;
+    },
+    [],
+    '<span class="monospace">(name) (position)</span> – Move group member to position (index starts with 0).</code>',
 );
 
 
