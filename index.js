@@ -661,6 +661,39 @@ rsc('memberpos',
 );
 
 
+rsc('switch',
+    (args, value)=>{
+        const val = getVar(args.var, args.globalvar, value);
+        return JSON.stringify({
+            switch: val,
+        });
+    },
+    [],
+    '<span class="monospace">[optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Use with /case.',
+);
+
+rsc('case',
+    async (args, value)=>{
+        if (args.pipe) {
+            let data;
+            try {
+                data = JSON.parse(args.pipe);
+            } catch (ex) {
+                console.warn('[LALIB]', '[CASE]', 'failed to parse args.pipe', args.value, ex);
+            }
+            if (data?.switch !== undefined) {
+                if (data.switch == args.value) {
+                    return (await executeSlashCommands(value.replace(/{{value}}/ig, data.switch)))?.pipe;
+                }
+            }
+            return args.pipe;
+        }
+    },
+    [],
+    '<span class="monospace">[pipe={{pipe}}] [value=comparisonValue] (/command)</span> – Execute command and break out of the switch if the value given in /switch matches the value given here.',
+);
+
+
 rsc('fetch',
     async(args, value)=>{
         if (!window.stfetch) {
