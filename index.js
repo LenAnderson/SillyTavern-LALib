@@ -325,13 +325,14 @@ rsc('map',
                 result[index] = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
                 try { result[index] = JSON.parse(result[index]); } catch { /* empty */ }
             }
-            return result;
+        } else {
+            result = list;
         }
 
         if (typeof result == 'object') {
             result = JSON.stringify(result);
         }
-        return list;
+        return result;
     },
     [],
     '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary and returns the list or dictionary of the command results.',
