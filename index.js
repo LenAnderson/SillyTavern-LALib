@@ -532,11 +532,11 @@ rsc('catch',
             } catch (ex) {
                 console.warn('[LALIB]', '[CATCH]', 'failed to parse args.pipe', args.pipe, ex);
             }
-            if (data.isException) {
+            if (data?.isException) {
                 const result = await executeSlashCommands(value.replace(/{{(exception|error)}}/ig, data.exception));
                 return result.pipe;
             } else {
-                return data.result;
+                return data?.result;
             }
         }
     },
