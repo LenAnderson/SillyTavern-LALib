@@ -407,6 +407,19 @@ rsc('find',
     '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary and returns the first item where the command returned true.',
 );
 
+rsc('dict',
+    (args, value)=>{
+        const result = {};
+        const list = getListVar(args.var, args.globalvar, value);
+        for (const [key, val] of list) {
+            result[key] = val;
+        }
+        return JSON.stringify(result);
+    },
+    [],
+    '<span class="monospace">[optional var=varname] [optional globalvar=globalvarname] (list of lists)</span> – Takes a list of lists (each item must be a list of at least two items) and creates a dictionary by using each items first item as key and each items second item as value.',
+);
+
 
 rsc('join',
     (args, value)=>{
