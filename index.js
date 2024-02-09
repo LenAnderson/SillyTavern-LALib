@@ -312,17 +312,20 @@ rsc('map',
         const isList = Array.isArray(list);
         if (isList) {
             list = list.map((it,idx)=>[idx,it]);
+            result = [];
         } else if (typeof list == 'object') {
             list = Object.entries(list);
+            result = {};
         }
         if (Array.isArray(list)) {
             for (let [index,item] of list) {
                 if (typeof item == 'object') {
                     item = JSON.stringify(item);
                 }
-                list[index] = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                result[index] = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                try { result[index] = JSON.parse(result[index]); } catch { /* empty */ }
             }
-            return list;
+            return result;
         }
 
         if (typeof result == 'object') {
