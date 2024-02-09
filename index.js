@@ -486,7 +486,12 @@ rsc('setat',
             if (index.length == 0) {
                 current[ci] = value;
             }
+            const prev = current;
             current = current[ci];
+            try {
+                current = JSON.parse(current);
+                prev[ci] = current;
+            } catch { /* empty */ }
         }
         if (list !== undefined) {
             let result = (typeof list == 'object') ? JSON.stringify(list) : list;
