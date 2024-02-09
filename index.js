@@ -454,6 +454,15 @@ rsc('split',
 );
 
 
+rsc('trim',
+    (args, value)=>{
+        return value?.trim();
+    },
+    [],
+    '<span class="monospace">(text to trim)</span> – Removes whitespace at the start and end of the text.',
+);
+
+
 rsc('slice',
     (args, value)=>{
         const list = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
