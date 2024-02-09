@@ -694,6 +694,86 @@ rsc('case',
 );
 
 
+rsc('ife',
+    async(args, value)=>{
+        const result = await executeSlashCommands(value);
+        return JSON.stringify({
+            if: isTrueBoolean(result?.pipe),
+        });
+    },
+    [],
+    '<span class="monospace">(/command)</span> – Use with /then, /elseif, and /else. The provided command must return true or false.',
+);
+
+rsc('elseif',
+    async(args, value)=>{
+        if (args.pipe) {
+            let data;
+            try {
+                data = JSON.parse(args.pipe);
+            } catch (ex) {
+                console.warn('[LALIB]', '[ELSEIF]', 'failed to parse args.pipe', args.value, ex);
+            }
+            if (data?.if !== undefined) {
+                if (!data.if) {
+                    const result = await executeSlashCommands(value);
+                    return JSON.stringify({
+                        if: isTrueBoolean(result?.pipe),
+                    });
+                }
+            }
+        }
+        return args.pipe;
+    },
+    [],
+    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /if, /then, and /else. The provided command must return true or false.',
+);
+
+rsc('else',
+    async(args, value)=>{
+        if (args.pipe) {
+            let data;
+            try {
+                data = JSON.parse(args.pipe);
+            } catch (ex) {
+                console.warn('[LALIB]', '[ELSE]', 'failed to parse args.pipe', args.value, ex);
+            }
+            if (data?.if !== undefined) {
+                if (!data.if) {
+                    const result = await executeSlashCommands(value);
+                    return result.pipe;
+                }
+            }
+        }
+        return args.pipe;
+    },
+    [],
+    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /if, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.',
+);
+
+rsc('then',
+    async(args, value)=>{
+        if (args.pipe) {
+            let data;
+            try {
+                data = JSON.parse(args.pipe);
+            } catch (ex) {
+                console.warn('[LALIB]', '[THEN]', 'failed to parse args.pipe', args.value, ex);
+            }
+            if (data?.if !== undefined) {
+                if (data.if) {
+                    const result = await executeSlashCommands(value);
+                    return result.pipe;
+                }
+            }
+        }
+        return args.pipe;
+    },
+    [],
+    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /if, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.',
+);
+
+
 rsc('fetch',
     async(args, value)=>{
         if (!window.stfetch) {
