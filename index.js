@@ -454,15 +454,24 @@ rsc('slice',
 
 rsc('getat',
     (args, value)=>{
+        let index = getListVar(null, null, args.index) ?? [args.index];
+        if (!Array.isArray(index)) {
+            index = [index];
+        }
         const list = getListVar(args.var, args.globalvar, value);
-        const result = Array.isArray(list) ? list.slice(args.index)[0] : list[args.index];
+        let result = list;
+        while (index.length > 0 && result !== undefined) {
+            const ci = index.shift();
+            result = Array.isArray(result) ? result.slice(ci)[0] : result[ci];
+            try { result = JSON.parse(result); } catch { /* empty */ }
+        }
         if (typeof result == 'object') {
             return JSON.stringify(result);
         }
         return result;
     },
     [],
-    '<span class="monospace">index=int|fieldname [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves an item from a list or a property from a dictionary.',
+    '<span class="monospace">index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves an item from a list or a property from a dictionary.',
 );
 
 rsc('setat',
