@@ -740,7 +740,7 @@ rsc('elseif',
         return args.pipe;
     },
     [],
-    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /if, /then, and /else. The provided command must return true or false.',
+    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /then, and /else. The provided command must return true or false.',
 );
 
 rsc('else',
@@ -762,7 +762,7 @@ rsc('else',
         return args.pipe;
     },
     [],
-    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /if, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.',
+    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.',
 );
 
 rsc('then',
@@ -784,7 +784,7 @@ rsc('then',
         return args.pipe;
     },
     [],
-    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /if, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.',
+    '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.',
 );
 
 
