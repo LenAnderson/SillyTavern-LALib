@@ -265,7 +265,7 @@ rsc('or',
 
 rsc('not',
     (args, value)=>{
-        return value != true;
+        return JSON.stringify(isTrueBoolean(value) != true);
     },
     [],
     '<span class="monospace">(value)</span> – Returns true if value is false, otherwise true.',
