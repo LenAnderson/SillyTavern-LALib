@@ -477,6 +477,19 @@ rsc('slice',
     '<span class="monospace">start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves a slice of a list or string.',
 );
 
+rsc('shuffle',
+    (args, value)=>{
+        const list = getListVar(null, null, value);
+        for (let i = list.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return JSON.stringify(list);
+    },
+    [],
+    '<span class="monospace">(list to shuffle)</span> – Returns a shuffled list.',
+);
+
 
 rsc('getat',
     (args, value)=>{
