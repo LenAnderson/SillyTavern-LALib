@@ -3,6 +3,7 @@ import { extension_settings } from '../../../extensions.js';
 import { findGroupMemberId, groups, selected_group } from '../../../group-chats.js';
 import { executeSlashCommands, registerSlashCommand } from '../../../slash-commands.js';
 import { isTrueBoolean } from '../../../utils.js';
+import { world_info } from '../../../world-info.js';
 
 
 
@@ -824,6 +825,60 @@ rsc('then',
     },
     [],
     '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.',
+);
+
+
+rsc('wi-list-entries',
+    async(args, value)=>{
+        const loadBook = async(name)=>{
+            const result = await fetch('/api/worldinfo/get', {
+                method: 'POST',
+                headers: getRequestHeaders(),
+                body: JSON.stringify({ name }),
+            });
+            if (result.ok) {
+                const data = await result.json();
+                data.entries = Object.keys(data.entries).map(it=>{
+                    data.entries[it].book = name;
+                    return data.entries[it];
+                });
+                data.book = name;
+                return data;
+            } else {
+                toastr.warning(`Failed to load World Info book: ${name}`);
+            }
+        };
+        let names;
+        let isNameGiven = false;
+        if (value && value?.trim()?.length) {
+            names = [value.trim()];
+            isNameGiven = true;
+        } else {
+            const context = getContext();
+            names = [
+                ...(world_info.globalSelect ?? []),
+                ...(world_info.charLore?.map(it=>it.extraBooks)?.flat() ?? []),
+                chat_metadata.world_info,
+                characters[context.characterId]?.data?.character_book?.name,
+                ...(groups
+                    .find(it=>it.id == context.groupId)
+                    ?.members
+                    ?.map(m=>characters.find(it=>it.avatar == m)?.data?.character_book?.name)
+                        ?? []
+                ),
+            ].filter(it=>it);
+        }
+        const books = {};
+        for (const book of names) {
+            books[book] = await loadBook(book);
+        }
+        if (isTrueBoolean(args.flat) || isNameGiven) {
+            return JSON.stringify(Object.keys(books).map(it=>books[it].entries).flat());
+        }
+        return JSON.stringify(books);
+    },
+    [],
+    '<span class="monospace">[optional flat=true] (optional book name)</span> – Get a list of World Info entries from currently active books or from the book with the provided name. Use <code>flat=true</code> to list all entrie in a flat list instead of a dictionary with entries per book.',
 );
 
 
