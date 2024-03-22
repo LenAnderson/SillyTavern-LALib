@@ -190,6 +190,7 @@ const rsc = (command, callback, aliasList, helpText, a = true, b = true)=>{
 
 
 
+// GROUP: Help
 rsc('lalib?',
     ()=>{
         const cmds = commandList.map(it=>{
@@ -225,6 +226,7 @@ rsc('lalib?',
 );
 
 
+// GROUP: Boolean Operations
 rsc('test',
     (args)=>{
         const { a, b, rule } = parseBooleanOperands(args);
@@ -275,6 +277,7 @@ rsc('not',
 );
 
 
+// GROUP: List Operations
 rsc('foreach',
     async(args, value)=>{
         let list = getListVar(args.var, args.globalvar, args.list);
@@ -409,6 +412,33 @@ rsc('find',
     '<span class="monospace">[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})</span> – Executes command for each item of a list or dictionary and returns the first item where the command returned true.',
 );
 
+rsc('slice',
+    (args, value)=>{
+        const list = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
+        let end = args.end ?? (args.length ? Number(args.start) + Number(args.length) : undefined);
+        const result = list.slice(args.start, end);
+        if (typeof result == 'object') {
+            return JSON.stringify(result);
+        }
+        return result;
+    },
+    [],
+    '<span class="monospace">start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves a slice of a list or string.',
+);
+
+rsc('shuffle',
+    (args, value)=>{
+        const list = getListVar(null, null, value);
+        for (let i = list.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [list[i], list[j]] = [list[j], list[i]];
+        }
+        return JSON.stringify(list);
+    },
+    [],
+    '<span class="monospace">(list to shuffle)</span> – Returns a shuffled list.',
+);
+
 rsc('dict',
     (args, value)=>{
         const result = {};
@@ -423,6 +453,7 @@ rsc('dict',
 );
 
 
+// GROUP: Split & Join
 rsc('join',
     (args, value)=>{
         let list = getListVar(args.var, args.globalvar, value);
@@ -455,6 +486,7 @@ rsc('split',
 );
 
 
+// GROUP: Text Operations
 rsc('trim',
     (args, value)=>{
         return value?.trim();
@@ -464,34 +496,7 @@ rsc('trim',
 );
 
 
-rsc('slice',
-    (args, value)=>{
-        const list = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
-        let end = args.end ?? (args.length ? Number(args.start) + Number(args.length) : undefined);
-        const result = list.slice(args.start, end);
-        if (typeof result == 'object') {
-            return JSON.stringify(result);
-        }
-        return result;
-    },
-    [],
-    '<span class="monospace">start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)</span> – Retrieves a slice of a list or string.',
-);
-
-rsc('shuffle',
-    (args, value)=>{
-        const list = getListVar(null, null, value);
-        for (let i = list.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [list[i], list[j]] = [list[j], list[i]];
-        }
-        return JSON.stringify(list);
-    },
-    [],
-    '<span class="monospace">(list to shuffle)</span> – Returns a shuffled list.',
-);
-
-
+// GROUP: Accessing & Manipulating Structured Data
 rsc('getat',
     (args, value)=>{
         let index = getListVar(null, null, args.index) ?? [args.index];
@@ -558,6 +563,7 @@ rsc('setat',
 );
 
 
+// GROUP: Exception Handling
 rsc('try',
     async(args, value)=>{
         try {
@@ -599,6 +605,7 @@ rsc('catch',
 );
 
 
+// GROUP: Copy & Download
 rsc('copy',
     (args, value)=>{
         const ta = document.createElement('textarea'); {
@@ -641,6 +648,7 @@ rsc('download',
 );
 
 
+// GROUP: DOM Interaction
 rsc('dom',
     (args, query)=>{
         /**@type {HTMLElement} */
@@ -685,6 +693,7 @@ rsc('dom',
 );
 
 
+// GROUP: Group Chats
 rsc('memberpos',
     async(args, value)=>{
         if (!selected_group) {
@@ -715,6 +724,7 @@ rsc('memberpos',
 );
 
 
+// GROUP: Conditionals - switch
 rsc('switch',
     (args, value)=>{
         const val = getVar(args.var, args.globalvar, value);
@@ -748,6 +758,7 @@ rsc('case',
 );
 
 
+// GROUP: Conditionals - if
 rsc('ife',
     async(args, value)=>{
         const result = await executeSlashCommands(value);
@@ -844,6 +855,7 @@ const getBookNames = ()=>{
     ].filter(it=>it);
     return names;
 };
+// GROUP: World Info
 rsc('wi-list-books',
     async(args, value)=>{
         return JSON.stringify(getBookNames());
@@ -893,6 +905,7 @@ rsc('wi-list-entries',
 );
 
 
+// GROUP: Undocumented
 rsc('fetch',
     async(args, value)=>{
         if (!window.stfetch) {
