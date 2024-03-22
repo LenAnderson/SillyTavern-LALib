@@ -883,6 +883,29 @@ rsc('then',
 );
 
 
+const getBookNames = ()=>{
+    const context = getContext();
+    const names = [
+        ...(world_info.globalSelect ?? []),
+        ...(world_info.charLore?.map(it=>it.extraBooks)?.flat() ?? []),
+        chat_metadata.world_info,
+        characters[context.characterId]?.data?.character_book?.name,
+        ...(groups
+            .find(it=>it.id == context.groupId)
+            ?.members
+            ?.map(m=>characters.find(it=>it.avatar == m)?.data?.character_book?.name)
+                ?? []
+        ),
+    ].filter(it=>it);
+    return names;
+};
+rsc('wi-list-books',
+    async(args, value)=>{
+        return JSON.stringify(getBookNames());
+    },
+    [],
+    '<span class="monospace"></span> – Get a list of currently active World Info books.',
+);
 rsc('wi-list-entries',
     async(args, value)=>{
         const loadBook = async(name)=>{
@@ -905,23 +928,11 @@ rsc('wi-list-entries',
         };
         let names;
         let isNameGiven = false;
-        if (value && value?.trim()?.length) {
+        if (value && value?.trim()?.length && value != '""' && value != 'null') {
             names = [value.trim()];
             isNameGiven = true;
         } else {
-            const context = getContext();
-            names = [
-                ...(world_info.globalSelect ?? []),
-                ...(world_info.charLore?.map(it=>it.extraBooks)?.flat() ?? []),
-                chat_metadata.world_info,
-                characters[context.characterId]?.data?.character_book?.name,
-                ...(groups
-                    .find(it=>it.id == context.groupId)
-                    ?.members
-                    ?.map(m=>characters.find(it=>it.avatar == m)?.data?.character_book?.name)
-                        ?? []
-                ),
-            ].filter(it=>it);
+            names = getBookNames();
         }
         const books = {};
         for (const book of names) {

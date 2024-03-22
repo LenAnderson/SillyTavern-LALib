@@ -105,6 +105,9 @@ Library of STScript commands.
 – Use with /ife, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.
 
 
+/wi-list-books 
+– Get a list of currently active World Info books.
+
 /wi-list-entries [optional flat=true] (optional book name)
 – Get a list of World Info entries from currently active books or from the book with the provided name. Use flat=true to list all entrie in a flat list instead of a dictionary with entries per book.
 
