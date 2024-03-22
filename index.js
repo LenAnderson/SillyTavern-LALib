@@ -454,6 +454,21 @@ rsc('dict',
 
 
 // GROUP: Split & Join
+rsc('split',
+    (args, value)=>{
+        value = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
+        let find = args.find ?? ',';
+        if (find.match(/^\/.+\/[a-z]*$/)) {
+            find = new RegExp(find.replace(/^\/(.+)\/([a-z]*)$/, '$1'), find.replace(/^\/(.+)\/([a-z]*)$/, '$2'));
+        }
+        return JSON.stringify(value.split(find).map(it=>isTrueBoolean(args.trim ?? 'true') ? it.trim() : it));
+    },
+    [],
+    '<span class="monospace">[optional find=","] [optional trim=true|false] [optional var=varname] [optional globalvar=globalvarname] (value)</span> – Splits value into list at every occurrence of find. Supports regex <code>find=/\\s/</code>',
+    true,
+    true,
+);
+
 rsc('join',
     (args, value)=>{
         let list = getListVar(args.var, args.globalvar, value);
@@ -466,21 +481,6 @@ rsc('join',
     },
     [],
     '<span class="monospace">[optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)</span> – Joins the items of a list with glue into a single string. Use <code>glue={{space}}</code> to join with a space.',
-    true,
-    true,
-);
-
-rsc('split',
-    (args, value)=>{
-        value = getListVar(args.var, args.globalvar, value) ?? getVar(args.var, args.globalvar, value);
-        let find = args.find ?? ',';
-        if (find.match(/^\/.+\/[a-z]*$/)) {
-            find = new RegExp(find.replace(/^\/(.+)\/([a-z]*)$/, '$1'), find.replace(/^\/(.+)\/([a-z]*)$/, '$2'));
-        }
-        return JSON.stringify(value.split(find).map(it=>isTrueBoolean(args.trim ?? 'true') ? it.trim() : it));
-    },
-    [],
-    '<span class="monospace">[optional find=","] [optional trim=true|false] [optional var=varname] [optional globalvar=globalvarname] (value)</span> – Splits value into list at every occurrence of find. Supports regex <code>find=/\\s/</code>',
     true,
     true,
 );

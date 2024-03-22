@@ -1,6 +1,18 @@
 # LALib
 Library of STScript commands.
 
+- Boolean Operations (test, and, or, not)
+- List Operations (foreach, map, filter, find, slice, shuffle, dict)
+- Split & Join (split, join)
+- Text Operations (trim)
+- Accessing & Manipulating Structured Data (getat, setat)
+- Exception Handling (try, catch)
+- Copy & Download (copy, download)
+- DOM Interaction (dom)
+- Group Chats (memberpos)
+- Conditionals - switch (switch, case)
+- Conditionals - if (ife, elseif, else, then)
+- World Info (wi-list-books, wi-list-entries)
 
 
 
@@ -292,6 +304,27 @@ Takes a list of lists (each item must be a list of at least two items) and creat
 
 
 
+### `/split`
+`[optional find=","] [optional trim=true|false] [optional var=varname] [optional globalvar=globalvarname] (value)`
+
+Splits value into list at every occurrence of find. Supports regex <code>find=/\\s/</code>
+
+#### Examples
+
+```
+/split foo, bar |
+/echo The result will be ["foo", "bar"]: {{pipe}}
+```
+
+```
+/split find=/o.+?o/g The quick brown fox jumps over the lazy dog. |
+/echo The result will be ["The quick br", "x jumps", "g."]: {{pipe}}
+```
+
+
+
+
+
 ### `/join`
 `[optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)`
 
@@ -308,27 +341,6 @@ Joins the items of a list with glue into a single string. Use <code>glue={{space
 ```
 /join glue=::: ["foo", "bar"] |
 /echo The result will be "foo:::bar": {{pipe}}
-```
-
-
-
-
-
-### `/split`
-`[optional find=","] [optional trim=true|false] [optional var=varname] [optional globalvar=globalvarname] (value)`
-
-Splits value into list at every occurrence of find. Supports regex <code>find=/\\s/</code>
-
-#### Examples
-
-```
-/split foo, bar |
-/echo The result will be ["foo", "bar"]: {{pipe}}
-```
-
-```
-/split find=/o.+?o/g The quick brown fox jumps over the lazy dog. |
-/echo The result will be ["The quick br", "x jumps", "g."]: {{pipe}}
 ```
 
 

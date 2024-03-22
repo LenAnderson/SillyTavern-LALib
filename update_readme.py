@@ -64,6 +64,13 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'w', encoding='u
 		Library of STScript commands.
 	''', flags=re.MULTILINE))
 	for group in cmd_list:
+		if group in ['Help', 'Undocumented']:
+			continue
+		f.write('\n')
+		f.write(f'- {group} (')
+		f.write(', '.join([x.cmd for x in cmd_list[group]]))
+		f.write(')')
+	for group in cmd_list:
 		f.write('\n'*6)
 		f.write(f'## {group}')
 		for cmd in cmd_list[group]:
