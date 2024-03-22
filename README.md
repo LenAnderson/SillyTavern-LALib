@@ -23,6 +23,7 @@ Library of STScript commands.
 /foreach [optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})
 – Executes command for each item of a list or dictionary.
 
+
 /map [optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})
 – Executes command for each item of a list or dictionary and returns the list or dictionary of the command results.
 
@@ -34,10 +35,6 @@ Library of STScript commands.
 – Executes command for each item of a list or dictionary and returns the first item where the command returned true.
 
 
-/dict [optional var=varname] [optional globalvar=globalvarname] (list of lists)
-– Takes a list of lists (each item must be a list of at least two items) and creates a dictionary by using each items first item as key and each items second item as value.
-
-
 /join [optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)
 – Joins the items of a list with glue into a single string. Use glue={{space}} to join with a space.
 
@@ -45,21 +42,14 @@ Library of STScript commands.
 – Splits value into list at every occurrence of find. Supports regex find=/\s/
 
 
-/trim (text to trim)
-– Removes whitespace at the start and end of the text.
-
-
 /slice start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)
 – Retrieves a slice of a list or string.
 
-/shuffle (list to shuffle)
-– Returns a shuffled list.
 
-
-/getat index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] (optional value)
+/getat [index=int|fieldname|list] [optional var=varname] [optional globalvar=globalvarname] (optional value)
 – Retrieves an item from a list or a property from a dictionary.
 
-/setat index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] [optional value=list|dictionary] (value)
+/setat [index=int|fieldname|list] [optional var=varname] [optional globalvar=globalvarname] [optional value=list|dictionary] (value)
 – Sets an item in a list or a property in a dictionary. Example: /setat value=[1,2,3] index=1 X returns [1,"X",3], /setat var=myVariable index=[1,2,"somePropery"] foobar sets the value of myVariable[1][2].someProperty to "foobar" (the variable will be updated and the resulting value of myVariable will be returned). Can be used to create structures that do not already exist.
 
 
@@ -96,20 +86,13 @@ Library of STScript commands.
 – Use with /then, /elseif, and /else. The provided command must return true or false.
 
 /elseif [pipe={{pipe}}] (/command)
-– Use with /ife, /then, and /else. The provided command must return true or false.
+– Use with /if, /then, and /else. The provided command must return true or false.
 
 /else [pipe={{pipe}}] (/command)
-– Use with /ife, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.
+– Use with /if, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.
 
 /then [pipe={{pipe}}] (/command)
-– Use with /ife, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.
-
-
-/wi-list-books 
-– Get a list of currently active World Info books.
-
-/wi-list-entries [optional flat=true] (optional book name)
-– Get a list of World Info entries from currently active books or from the book with the provided name. Use flat=true to list all entrie in a flat list instead of a dictionary with entries per book.
+– Use with /if, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.
 
 
 /fetch (url)
