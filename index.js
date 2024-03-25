@@ -1,4 +1,4 @@
-import { characters, chat_metadata, getRequestHeaders, sendSystemMessage } from '../../../../script.js';
+import { characters, chat_metadata, getRequestHeaders, reloadMarkdownProcessor, sendSystemMessage } from '../../../../script.js';
 import { extension_settings, getContext } from '../../../extensions.js';
 import { findGroupMemberId, groups, selected_group } from '../../../group-chats.js';
 import { executeSlashCommands, registerSlashCommand } from '../../../slash-commands.js';
@@ -192,34 +192,10 @@ const rsc = (command, callback, aliasList, helpText, a = true, b = true)=>{
 
 // GROUP: Help
 rsc('lalib?',
-    ()=>{
-        const cmds = commandList.map(it=>{
-            const li = document.createElement('li'); {
-                const code = document.createElement('code'); {
-                    const cmd = it.command;
-                    code.append('/');
-                    code.append(cmd);
-                    code.append(' ');
-                    const q = document.createElement('q'); {
-                        const args = document.createRange().createContextualFragment(it.args).textContent;
-                        q.append(args);
-                        code.append(q);
-                    }
-                    li.append(code);
-                }
-                const p = document.createElement('p'); {
-                    p.innerHTML = it.helpText;
-                    li.append(p);
-                }
-            }
-            return li.outerHTML;
-        });
-        const message = `
-            <ul style='text-align:left;'>
-                ${cmds.join('\n')}
-            </ul>
-        `;
-        sendSystemMessage('generic', message);
+    async()=>{
+        const converter = reloadMarkdownProcessor();
+        const readme = await (await fetch('/scripts/extensions/third-party/SillyTavern-LALib/README.md')).text();
+        sendSystemMessage('generic', converter.makeHtml(readme));
     },
     [],
     ' – Lists LALib commands',
