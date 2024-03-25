@@ -1,7 +1,8 @@
-import { characters, chat_metadata, getRequestHeaders, sendSystemMessage } from '../../../../script.js';
+import { characters, chat_metadata, getRequestHeaders, reloadMarkdownProcessor, sendSystemMessage } from '../../../../script.js';
 import { extension_settings, getContext } from '../../../extensions.js';
 import { findGroupMemberId, groups, selected_group } from '../../../group-chats.js';
 import { executeSlashCommands, registerSlashCommand } from '../../../slash-commands.js';
+import { SlashCommandClosure } from '../../../slash-commands/SlashCommandClosure.js';
 import { isTrueBoolean } from '../../../utils.js';
 import { world_info } from '../../../world-info.js';
 
@@ -192,34 +193,10 @@ const rsc = (command, callback, aliasList, helpText, a = true, b = true)=>{
 
 // GROUP: Help
 rsc('lalib?',
-    ()=>{
-        const cmds = commandList.map(it=>{
-            const li = document.createElement('li'); {
-                const code = document.createElement('code'); {
-                    const cmd = it.command;
-                    code.append('/');
-                    code.append(cmd);
-                    code.append(' ');
-                    const q = document.createElement('q'); {
-                        const args = document.createRange().createContextualFragment(it.args).textContent;
-                        q.append(args);
-                        code.append(q);
-                    }
-                    li.append(code);
-                }
-                const p = document.createElement('p'); {
-                    p.innerHTML = it.helpText;
-                    li.append(p);
-                }
-            }
-            return li.outerHTML;
-        });
-        const message = `
-            <ul style='text-align:left;'>
-                ${cmds.join('\n')}
-            </ul>
-        `;
-        sendSystemMessage('generic', message);
+    async()=>{
+        const converter = reloadMarkdownProcessor();
+        const readme = await (await fetch('/scripts/extensions/third-party/SillyTavern-LALib/README.md')).text();
+        sendSystemMessage('generic', converter.makeHtml(readme));
     },
     [],
     ' – Lists LALib commands',
@@ -293,7 +270,13 @@ rsc('foreach',
                 if (typeof item == 'object') {
                     item = JSON.stringify(item);
                 }
-                result = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                if (value instanceof SlashCommandClosure) {
+                    value.scope.setMacro('item', item);
+                    value.scope.setMacro('index', index);
+                    result = (await value.execute())?.pipe;
+                } else {
+                    result = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                }
             }
             return result;
         }
@@ -326,7 +309,13 @@ rsc('map',
                 if (typeof item == 'object') {
                     item = JSON.stringify(item);
                 }
-                result[index] = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                if (value instanceof SlashCommandClosure) {
+                    value.scope.setMacro('item', item);
+                    value.scope.setMacro('index', index);
+                    result[index] = (await value.execute())?.pipe;
+                } else {
+                    result[index] = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                }
                 try { result[index] = JSON.parse(result[index]); } catch { /* empty */ }
             }
         } else {
@@ -359,7 +348,15 @@ rsc('filter',
                 if (typeof item == 'object') {
                     item = JSON.stringify(item);
                 }
-                if (isTrueBoolean((await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe)) {
+                let outcome;
+                if (value instanceof SlashCommandClosure) {
+                    value.scope.setMacro('item', item);
+                    value.scope.setMacro('index', index);
+                    outcome = (await value.execute())?.pipe;
+                } else {
+                    outcome = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                }
+                if (isTrueBoolean(outcome)) {
                     if (isList) {
                         result.push(item);
                     } else {
@@ -397,7 +394,15 @@ rsc('find',
                 if (typeof item == 'object') {
                     item = JSON.stringify(item);
                 }
-                if (isTrueBoolean((await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe)) {
+                let outcome;
+                if (value instanceof SlashCommandClosure) {
+                    value.scope.setMacro('item', item);
+                    value.scope.setMacro('index', index);
+                    result = (await value.execute())?.pipe;
+                } else {
+                    outcome = (await executeSlashCommands(value.replace(/{{item}}/ig, item).replace(/{{index}}/ig, index)))?.pipe;
+                }
+                if (isTrueBoolean(outcome)) {
                     if (typeof result == 'object') {
                         return JSON.stringify(item);
                     }
@@ -567,7 +572,12 @@ rsc('setat',
 rsc('try',
     async(args, value)=>{
         try {
-            const result = await executeSlashCommands(value);
+            let result;
+            if (value instanceof SlashCommandClosure) {
+                result = await value.execute();
+            } else {
+                result = await executeSlashCommands(value);
+            }
             return JSON.stringify({
                 isException: false,
                 result: result.pipe,
@@ -585,19 +595,24 @@ rsc('try',
 
 rsc('catch',
     async(args, value)=>{
-        if (args.pipe) {
-            let data;
-            try {
-                data = JSON.parse(args.pipe);
-            } catch (ex) {
-                console.warn('[LALIB]', '[CATCH]', 'failed to parse args.pipe', args.pipe, ex);
-            }
-            if (data?.isException) {
-                const result = await executeSlashCommands(value.replace(/{{(exception|error)}}/ig, data.exception));
-                return result.pipe;
+        let data;
+        try {
+            data = JSON.parse(args._scope.pipe);
+        } catch (ex) {
+            console.warn('[LALIB]', '[CATCH]', 'failed to parse pipe', args._scope.pipe, ex);
+        }
+        if (data?.isException) {
+            let result;
+            if (value instanceof SlashCommandClosure) {
+                value.scope.setMacro('exception', data.exception);
+                value.scope.setMacro('error', data.exception);
+                result = await value.execute();
             } else {
-                return data?.result;
+                result = await executeSlashCommands(value.replace(/{{(exception|error)}}/ig, data.exception));
             }
+            return result.pipe;
+        } else {
+            return data?.result;
         }
     },
     [],
@@ -738,20 +753,22 @@ rsc('switch',
 
 rsc('case',
     async (args, value)=>{
-        if (args.pipe) {
-            let data;
-            try {
-                data = JSON.parse(args.pipe);
-            } catch (ex) {
-                console.warn('[LALIB]', '[CASE]', 'failed to parse args.pipe', args.value, ex);
-            }
-            if (data?.switch !== undefined) {
-                if (data.switch == args.value) {
-                    return (await executeSlashCommands(value.replace(/{{value}}/ig, data.switch)))?.pipe;
-                }
-            }
-            return args.pipe;
+        let data;
+        try {
+            data = JSON.parse(args._scope.pipe);
+        } catch (ex) {
+            console.warn('[LALIB]', '[CASE]', 'failed to parse pipe', args._scope.pipe, ex);
         }
+        if (data?.switch !== undefined) {
+            if (data.switch == args.value) {
+                if (value instanceof SlashCommandClosure) {
+                    value.scope.setMacro('value', data.switch);
+                    return (await value.execute())?.pipe;
+                }
+                return (await executeSlashCommands(value.replace(/{{value}}/ig, data.switch)))?.pipe;
+            }
+        }
+        return args._scope.pipe;
     },
     [],
     '<span class="monospace">[pipe={{pipe}}] [value=comparisonValue] (/command)</span> – Execute command and break out of the switch if the value given in /switch matches the value given here.',
@@ -761,7 +778,12 @@ rsc('case',
 // GROUP: Conditionals - if
 rsc('ife',
     async(args, value)=>{
-        const result = await executeSlashCommands(value);
+        let result;
+        if (value instanceof SlashCommandClosure) {
+            result = await value.execute();
+        } else {
+            result = await executeSlashCommands(value);
+        }
         return JSON.stringify({
             if: isTrueBoolean(result?.pipe),
         });
@@ -772,23 +794,26 @@ rsc('ife',
 
 rsc('elseif',
     async(args, value)=>{
-        if (args.pipe) {
-            let data;
-            try {
-                data = JSON.parse(args.pipe);
-            } catch (ex) {
-                console.warn('[LALIB]', '[ELSEIF]', 'failed to parse args.pipe', args.value, ex);
-            }
-            if (data?.if !== undefined) {
-                if (!data.if) {
-                    const result = await executeSlashCommands(value);
-                    return JSON.stringify({
-                        if: isTrueBoolean(result?.pipe),
-                    });
+        let data;
+        try {
+            data = JSON.parse(args._scope.pipe);
+        } catch (ex) {
+            console.warn('[LALIB]', '[ELSEIF]', 'failed to parse pipe', args._scope.pipe, ex);
+        }
+        if (data?.if !== undefined) {
+            if (!data.if) {
+                let result;
+                if (value instanceof SlashCommandClosure) {
+                    result = await value.execute();
+                } else {
+                    result = await executeSlashCommands(value);
                 }
+                return JSON.stringify({
+                    if: isTrueBoolean(result?.pipe),
+                });
             }
         }
-        return args.pipe;
+        return args._scope.pipe;
     },
     [],
     '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /then, and /else. The provided command must return true or false.',
@@ -796,21 +821,24 @@ rsc('elseif',
 
 rsc('else',
     async(args, value)=>{
-        if (args.pipe) {
-            let data;
-            try {
-                data = JSON.parse(args.pipe);
-            } catch (ex) {
-                console.warn('[LALIB]', '[ELSE]', 'failed to parse args.pipe', args.value, ex);
-            }
-            if (data?.if !== undefined) {
-                if (!data.if) {
-                    const result = await executeSlashCommands(value);
-                    return result.pipe;
+        let data;
+        try {
+            data = JSON.parse(args._scope.pipe);
+        } catch (ex) {
+            console.warn('[LALIB]', '[ELSE]', 'failed to parse pipe', args.value, ex);
+        }
+        if (data?.if !== undefined) {
+            if (!data.if) {
+                let result;
+                if (value instanceof SlashCommandClosure) {
+                    result = await value.execute();
+                } else {
+                    result = await executeSlashCommands(value);
                 }
+                return result.pipe;
             }
         }
-        return args.pipe;
+        return args._scope.pipe;
     },
     [],
     '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.',
@@ -818,21 +846,24 @@ rsc('else',
 
 rsc('then',
     async(args, value)=>{
-        if (args.pipe) {
-            let data;
-            try {
-                data = JSON.parse(args.pipe);
-            } catch (ex) {
-                console.warn('[LALIB]', '[THEN]', 'failed to parse args.pipe', args.value, ex);
-            }
-            if (data?.if !== undefined) {
-                if (data.if) {
-                    const result = await executeSlashCommands(value);
-                    return result.pipe;
+        let data;
+        try {
+            data = JSON.parse(args._scope.pipe);
+        } catch (ex) {
+            console.warn('[LALIB]', '[THEN]', 'failed to parse pipe', args._scope.pipe, ex);
+        }
+        if (data?.if !== undefined) {
+            if (data.if) {
+                let result;
+                if (value instanceof SlashCommandClosure) {
+                    result = await value.execute();
+                } else {
+                    result = await executeSlashCommands(value);
                 }
+                return result.pipe;
             }
         }
-        return args.pipe;
+        return args._scope.pipe;
     },
     [],
     '<span class="monospace">[pipe={{pipe}}] (/command)</span> – Use with /ife, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.',
