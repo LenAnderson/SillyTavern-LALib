@@ -1,5 +1,7 @@
 # LALib
+
 Library of STScript commands.
+
 
 - Boolean Operations (test, and, or, not)
 - List Operations (foreach, map, filter, find, slice, shuffle, dict)
@@ -13,19 +15,45 @@ Library of STScript commands.
 - Conditionals - switch (switch, case)
 - Conditionals - if (ife, elseif, else, then)
 - World Info (wi-list-books, wi-list-entries)
+- Costumes / Sprites (costumes)
 
 
 
 
 
-## Help
+## Requirements
+
+
+- [Costumes Plugin](https://github.com/LenAnderson/SillyTavern-Costumes.git) for `/costumes` command.
 
 
 
-### `/lalib?`
+
+
+
+
+
+
+
+
+
+
+## Commands
+
+
+
+
+
+
+
+### Help
+
+
+
+#### `/lalib?`
 Lists LALib commands
 
-#### Examples
+##### Examples
 
 ```
 /lalib?
@@ -37,16 +65,16 @@ Lists LALib commands
 
 
 
-## Boolean Operations
+### Boolean Operations
 
 
 
-### `/test`
+#### `/test`
 `left=val rule=rule right=val`
 
 Returns true or false, depending on whether left and right adhere to rule. Available rules: gt => a > b, gte => a >= b, lt => a < b, lte => a <= b, eq => a == b, neq => a != b, not => !a, in (strings) => a includes b, nin (strings) => a not includes b
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x 1 |
@@ -66,12 +94,12 @@ Returns true or false, depending on whether left and right adhere to rule. Avail
 
 
 
-### `/and`
+#### `/and`
 `left=val right=val`
 
 Returns true if both left and right are true, otherwise false.
 
-#### Examples
+##### Examples
 
 ```
 /and left=true right=false |
@@ -87,12 +115,12 @@ Returns true if both left and right are true, otherwise false.
 
 
 
-### `/or`
+#### `/or`
 `left=val right=val`
 
 Returns true if at least one of left and right are true, false if both are false.
 
-#### Examples
+##### Examples
 
 ```
 /or left=true right=false |
@@ -108,12 +136,12 @@ Returns true if at least one of left and right are true, false if both are false
 
 
 
-### `/not`
+#### `/not`
 `(value)`
 
 Returns true if value is false, otherwise true.
 
-#### Examples
+##### Examples
 
 ```
 /not true |
@@ -131,16 +159,16 @@ Returns true if value is false, otherwise true.
 
 
 
-## List Operations
+### List Operations
 
 
 
-### `/foreach`
+#### `/foreach`
 `[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})`
 
 Executes command for each item of a list or dictionary.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x ["A", "B", "C"] |
@@ -159,12 +187,12 @@ Executes command for each item of a list or dictionary.
 
 
 
-### `/map`
+#### `/map`
 `[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})`
 
 Executes command for each item of a list or dictionary and returns the list or dictionary of the command results.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x [1,2,3] |
@@ -185,12 +213,12 @@ Executes command for each item of a list or dictionary and returns the list or d
 
 
 
-### `/filter`
+#### `/filter`
 `[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})`
 
 Executes command for each item of a list or dictionary and returns the list or dictionary of only those items where the command returned true.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x [1,2,3,4,5,6,7,8,9,10] |
@@ -212,12 +240,12 @@ Executes command for each item of a list or dictionary and returns the list or d
 
 
 
-### `/find`
+#### `/find`
 `[optional list=[1,2,3]] [optional var=varname] [optional globalvar=globalvarname] (/command {{item}} {{index}})`
 
 Executes command for each item of a list or dictionary and returns the first item where the command returned true.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x [2,4,6,8,10] |
@@ -239,12 +267,12 @@ Executes command for each item of a list or dictionary and returns the first ite
 
 
 
-### `/slice`
+#### `/slice`
 `start=int [optional end=int] [optional length=int] [optional var=varname] [optional globalvar=globalvarname] (optional value)`
 
 Retrieves a slice of a list or string.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x [1,2,3,4,5] |
@@ -261,12 +289,12 @@ Retrieves a slice of a list or string.
 
 
 
-### `/shuffle`
+#### `/shuffle`
 `(list to shuffle)`
 
 Returns a shuffled list.
 
-#### Examples
+##### Examples
 
 ```
 /shuffle [1,2,3,4,5] |
@@ -277,12 +305,12 @@ Returns a shuffled list.
 
 
 
-### `/dict`
+#### `/dict`
 `[optional var=varname] [optional globalvar=globalvarname] (list of lists)`
 
 Takes a list of lists (each item must be a list of at least two items) and creates a dictionary by using each items first item as key and each items second item as value.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x [
@@ -300,16 +328,16 @@ Takes a list of lists (each item must be a list of at least two items) and creat
 
 
 
-## Split & Join
+### Split & Join
 
 
 
-### `/split`
+#### `/split`
 `[optional find=","] [optional trim=true|false] [optional var=varname] [optional globalvar=globalvarname] (value)`
 
 Splits value into list at every occurrence of find. Supports regex <code>find=/\\s/</code>
 
-#### Examples
+##### Examples
 
 ```
 /split foo, bar |
@@ -325,12 +353,12 @@ Splits value into list at every occurrence of find. Supports regex <code>find=/\
 
 
 
-### `/join`
+#### `/join`
 `[optional glue=", "] [optional var=varname] [optional globalvar=globalvarname] (optional list)`
 
 Joins the items of a list with glue into a single string. Use <code>glue={{space}}</code> to join with a space.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x ["a","b","c"] |
@@ -349,16 +377,16 @@ Joins the items of a list with glue into a single string. Use <code>glue={{space
 
 
 
-## Text Operations
+### Text Operations
 
 
 
-### `/trim`
+#### `/trim`
 `(text to trim)`
 
 Removes whitespace at the start and end of the text.
 
-#### Examples
+##### Examples
 
 ```
 /return [" foo", "bar "] |
@@ -373,16 +401,16 @@ Removes whitespace at the start and end of the text.
 
 
 
-## Accessing & Manipulating Structured Data
+### Accessing & Manipulating Structured Data
 
 
 
-### `/getat`
+#### `/getat`
 `index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] (optional value)`
 
 Retrieves an item from a list or a property from a dictionary.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x {
@@ -438,12 +466,12 @@ Retrieves an item from a list or a property from a dictionary.
 
 
 
-### `/setat`
+#### `/setat`
 `index=int|fieldname|list [optional var=varname] [optional globalvar=globalvarname] [optional value=list|dictionary] (value)`
 
 Sets an item in a list or a property in a dictionary. Example: <code>/setat value=[1,2,3] index=1 X</code> returns <code>[1,"X",3]</code>, <code>/setat var=myVariable index=[1,2,"somePropery"] foobar</code> sets the value of <code>myVariable[1][2].someProperty</code> to "foobar" (the variable will be updated and the resulting value of myVariable will be returned). Can be used to create structures that do not already exist.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x {
@@ -489,16 +517,16 @@ Sets an item in a list or a property in a dictionary. Example: <code>/setat valu
 
 
 
-## Exception Handling
+### Exception Handling
 
 
 
-### `/try`
+#### `/try`
 `(command)`
 
 try catch.
 
-#### Examples
+##### Examples
 
 ```
 /echo Try this first while being connected to an LLM, then without a connection. |
@@ -518,12 +546,12 @@ try catch.
 
 
 
-### `/catch`
+#### `/catch`
 `[pipe={{pipe}}] (command)`
 
 try catch. You must always set <code>pipe={{pipe}}</code> and /catch must always be called right after /try. Use <code>{{exception}}</code> or <code>{{error}}</code> to get the exception\'s message.
 
-#### Examples
+##### Examples
 
 ```
 see /try
@@ -535,16 +563,16 @@ see /try
 
 
 
-## Copy & Download
+### Copy & Download
 
 
 
-### `/copy`
+#### `/copy`
 `(value)`
 
 Copies value into clipboard.
 
-#### Examples
+##### Examples
 
 ```
 /copy this text is now in your clipboard
@@ -558,12 +586,12 @@ Copies value into clipboard.
 
 
 
-### `/download`
+#### `/download`
 `[optional name=filename] [optional ext=extension] (value)`
 
 Downloads value as a text file.
 
-#### Examples
+##### Examples
 
 ```
 /download Let's download this text.
@@ -579,16 +607,16 @@ Downloads value as a text file.
 
 
 
-## DOM Interaction
+### DOM Interaction
 
 
 
-### `/dom`
+#### `/dom`
 `[action=click|value|property] [optional value=newValue] [optional property=propertyName] [optional attribute=attributeName] (CSS selector)`
 
 Click on an element, change its value, retrieve a property, or retrieve an attribute. To select the targeted element, use CSS selectors. Example: <code>/dom action=click #expandMessageActions</code> or <code>/dom action=value value=0 #avatar_style</code>
 
-#### Examples
+##### Examples
 
 ```
 /dom action=click #fast_ui_mode |
@@ -616,16 +644,16 @@ Click on an element, change its value, retrieve a property, or retrieve an attri
 
 
 
-## Group Chats
+### Group Chats
 
 
 
-### `/memberpos`
+#### `/memberpos`
 `(name) (position)`
 
 Move group member to position (index starts with 0).</code>
 
-#### Examples
+##### Examples
 
 ```
 /memberpos Alice 3 |
@@ -638,16 +666,16 @@ Move group member to position (index starts with 0).</code>
 
 
 
-## Conditionals - switch
+### Conditionals - switch
 
 
 
-### `/switch`
+#### `/switch`
 `[optional var=varname] [optional globalvar=globalvarname] (optional value)`
 
 Use with /case.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x foo |
@@ -662,12 +690,12 @@ Use with /case.
 
 
 
-### `/case`
+#### `/case`
 `[pipe={{pipe}}] [value=comparisonValue] (/command)`
 
 Execute command and break out of the switch if the value given in /switch matches the value given here.
 
-#### Examples
+##### Examples
 
 ```
 see /switch
@@ -679,16 +707,16 @@ see /switch
 
 
 
-## Conditionals - if
+### Conditionals - if
 
 
 
-### `/ife`
+#### `/ife`
 `(/command)`
 
 Use with /then, /elseif, and /else. The provided command must return true or false.
 
-#### Examples
+##### Examples
 
 ```
 /setvar key=x foo |
@@ -705,12 +733,12 @@ Use with /then, /elseif, and /else. The provided command must return true or fal
 
 
 
-### `/elseif`
+#### `/elseif`
 `[pipe={{pipe}}] (/command)`
 
 Use with /ife, /then, and /else. The provided command must return true or false.
 
-#### Examples
+##### Examples
 
 ```
 see /ife
@@ -720,12 +748,12 @@ see /ife
 
 
 
-### `/else`
+#### `/else`
 `[pipe={{pipe}}] (/command)`
 
 Use with /ife, /elseif, and /then. The provided command will be executed if the previous /if or /elseif was false.
 
-#### Examples
+##### Examples
 
 ```
 see /ife
@@ -735,12 +763,12 @@ see /ife
 
 
 
-### `/then`
+#### `/then`
 `[pipe={{pipe}}] (/command)`
 
 Use with /ife, /elseif, and /else. The provided command will be executed if the previous /if or /elseif was true.
 
-#### Examples
+##### Examples
 
 ```
 see /ife
@@ -752,14 +780,14 @@ see /ife
 
 
 
-## World Info
+### World Info
 
 
 
-### `/wi-list-books`
+#### `/wi-list-books`
 Get a list of currently active World Info books.
 
-#### Examples
+##### Examples
 
 ```
 /wi-list-books |
@@ -770,12 +798,12 @@ Get a list of currently active World Info books.
 
 
 
-### `/wi-list-entries`
+#### `/wi-list-entries`
 `[optional flat=true] (optional book name)`
 
 Get a list of World Info entries from currently active books or from the book with the provided name. Use <code>flat=true</code> to list all entries in a flat list instead of a dictionary with entries per book.
 
-#### Examples
+##### Examples
 
 ```
 /wi-list-entries |
@@ -793,16 +821,45 @@ Get a list of World Info entries from currently active books or from the book wi
 
 
 
-## Undocumented
+### Costumes / Sprites
 
 
 
-### `/fetch`
+#### `/costumes`
+`[optional recurse=false] (folder)`
+
+Get a list of costume / sprite folders, recursive by default.
+
+##### Examples
+
+```
+/costumes Alice | /echo Alice's costumes: {{pipe}}
+```
+
+```
+/costumes Alice/Winter | /echo Alice's winter costumes: {{pipe}}
+```
+
+```
+/costumes recurse=false Alice | /echo Alice's top-level costumes only: {{pipe}}
+```
+
+
+
+
+
+
+
+### Undocumented
+
+
+
+#### `/fetch`
 `(url)`
 
 UNDOCUMENTED
 
-#### Examples
+##### Examples
 
 ```
 /fetch http://example.com |
@@ -813,12 +870,12 @@ UNDOCUMENTED
 
 
 
-### `/$`
+#### `/$`
 `[optional query=cssSelector] [optional take=property] [optional call=property] (html)`
 
 UNDOCUMENTED
 
-#### Examples
+##### Examples
 
 ```
 /fetch http://example.com |
@@ -830,12 +887,12 @@ UNDOCUMENTED
 
 
 
-### `/$$`
+#### `/$$`
 `[optional query=cssSelector] [optional take=property] [optional call=property] (html)`
 
 UNDOCUMENTED
 
-#### Examples
+##### Examples
 
 ```
 /fetch http://example.com |

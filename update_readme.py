@@ -43,10 +43,20 @@ group = None
 cmd = None
 in_example:bool = False
 ex:str = ''
+req:str = ''
+req_start = False
+req_end = False
 for line in readme:
-	if line.startswith('## '):
-		group = line.split('## ')[-1].strip()
-	elif group and line.startswith('### '):
+	if line.startswith('## Requirements'):
+		req_start = True
+	elif req_start and not req_end:
+		if line.startswith('## '):
+			req_end = True
+		else:
+			req = req + line
+	elif line.startswith('### '):
+		group = line.split('### ')[-1].strip()
+	elif group and line.startswith('#### '):
 		name = line.split('`')[1][1:]
 		cmd = [x for x in cmd_list[group] if x.cmd == name][0]
 	elif group and cmd and line == '```\n':
@@ -58,11 +68,9 @@ for line in readme:
 		ex += line
 
 with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'w', encoding='utf-8') as f:
-	f.write(re.sub(r'^\s+', r'', '''
-		# LALib
-
-		Library of STScript commands.
-	''', flags=re.MULTILINE))
+	# intro
+	f.write('# LALib\n\n')
+	f.write('Library of STScript commands.\n\n')
 	for group in cmd_list:
 		if group in ['Help', 'Undocumented']:
 			continue
@@ -70,16 +78,25 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md'), 'w', encoding='u
 		f.write(f'- {group} (')
 		f.write(', '.join([x.cmd for x in cmd_list[group]]))
 		f.write(')')
+
+	# requirements
+	f.write('\n'*6)
+	f.write('## Requirements\n\n')
+	f.write(req)
+
+	# commends
+	f.write('\n'*6)
+	f.write('## Commands\n\n')
 	for group in cmd_list:
 		f.write('\n'*6)
-		f.write(f'## {group}')
+		f.write(f'### {group}')
 		for cmd in cmd_list[group]:
 			f.write('\n'*4)
-			f.write(f'### `/{cmd.cmd}`\n')
+			f.write(f'#### `/{cmd.cmd}`\n')
 			if cmd.args:
 				f.write(f'`{cmd.args}`\n\n')
 			f.write(f'{cmd.hint}\n\n')
-			f.write('#### Examples\n\n')
+			f.write('##### Examples\n\n')
 			if len(cmd.examples) > 0:
 				for ex in cmd.examples:
 					f.write('```\n')

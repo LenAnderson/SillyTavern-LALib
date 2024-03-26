@@ -881,6 +881,25 @@ rsc('wi-list-entries',
 );
 
 
+// GROUP: Costumes / Sprites
+rsc('costumes',
+    async(args, value)=>{
+        const response = await fetch('/api/plugins/costumes/', {
+            method: 'POST',
+            headers: getRequestHeaders(),
+            body: JSON.stringify({ folder:value, recurse:args.recurse ?? true }),
+        });
+        if (!response.ok) {
+            toastr.error(`Failed to retrieve costumes: ${response.status} - ${response.statusText}`);
+            return '[]';
+        }
+        return await response.text();
+    },
+    [],
+    '<span class="monospace">[optional recurse=false] (folder)</span> – Get a list of costume / sprite folders, recursive by default.',
+);
+
+
 // GROUP: Undocumented
 rsc('fetch',
     async(args, value)=>{
