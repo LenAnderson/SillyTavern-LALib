@@ -5888,6 +5888,7 @@ SlashCommandParser.addCommandObject(SlashCommand.fromProps({ name: 'message-edit
         );
         await eventSource.emit(event_types.MESSAGE_EDITED, mesId);
         await eventSource.emit(event_types.MESSAGE_UPDATED, mesId);
+        await saveChatConditional();
         return '';
     },
     namedArgumentList: [
