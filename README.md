@@ -2320,7 +2320,7 @@ Plays an audio file.
 ##### **Examples**
 ```stscript
 
-/sfx volume=1.5 await=true /user/audio/mySound.wav | /echo finished playing sound |
+/sfx volume=1.5 await=true /user/files/mySound.wav | /echo finished playing sound |
 ```
 
 
